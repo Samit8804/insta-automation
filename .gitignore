@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.local
+__pycache__/
+*.pyc
+*.log
+*.err
+dist/
+.DS_Store
+screenshots/
+instagram_state.json
+.agents/
