@@ -2,9 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Instagram } from 'lucide-react';
+import { Instagram, Sparkles, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function Register() {
@@ -30,59 +28,88 @@ export default function Register() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-            <Instagram className="h-6 w-6 text-primary" />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-luxury-900 p-4">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(166,255,77,0.04)_0%,transparent_60%)]" />
+      <div className="pointer-events-none fixed left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-neon/5 blur-[100px]" />
+
+      <div className="relative w-full max-w-md animate-fade-in-up">
+        <div className="glass-card p-8 space-y-6">
+          <div className="text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-neon/10 neon-border">
+              <Instagram className="h-7 w-7 text-neon" />
+            </div>
+            <h1 className="text-2xl font-display font-bold">Create Account</h1>
+            <p className="mt-1 text-sm text-muted-foreground">Start automating your reel sharing</p>
           </div>
-          <CardTitle className="text-2xl">Create an account</CardTitle>
-          <CardDescription>Start automating your reel sharing</CardDescription>
-        </CardHeader>
-        <CardContent>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Name</label>
-              <Input
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Name</label>
+              <input
                 placeholder="Your name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                className="input-luxury"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Email</label>
-              <Input
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</label>
+              <input
                 type="email"
                 placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="input-luxury"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Password</label>
-              <Input
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Password</label>
+              <input
                 type="password"
                 placeholder="At least 6 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
+                className="input-luxury"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Creating account...' : 'Create Account'}
+
+            <Button type="submit" className="w-full h-11 gap-2" disabled={loading}>
+              {loading ? (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-luxury-900 border-t-transparent" />
+              ) : (
+                <>
+                  Create Account <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </Button>
           </form>
-          <p className="mt-4 text-center text-sm text-muted-foreground">
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/[0.06]" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-luxury-900 px-2 text-muted-foreground">or</span>
+            </div>
+          </div>
+
+          <p className="text-center text-sm text-muted-foreground">
             Already have an account?{' '}
-            <Link to="/login" className="text-primary hover:underline">
+            <Link to="/login" className="font-medium text-neon hover:underline">
               Sign in
             </Link>
           </p>
-        </CardContent>
-      </Card>
+        </div>
+
+        <div className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <Sparkles className="h-3 w-3 text-neon" />
+          Premium Automation Platform
+        </div>
+      </div>
     </div>
   );
 }

@@ -9,15 +9,20 @@ import {
   TrendingUp,
   Users,
   Clock,
+  Activity,
+  Zap,
+  Target,
+  Award,
+  Sparkles,
 } from 'lucide-react';
 
 const statCards = [
-  { key: 'totalShares', label: 'Total Shared', icon: Share2, color: 'text-blue-600' },
-  { key: 'todayShares', label: "Today's Shares", icon: TrendingUp, color: 'text-green-600' },
-  { key: 'weeklyShares', label: 'This Week', icon: Clock, color: 'text-purple-600' },
-  { key: 'monthlyShares', label: 'This Month', icon: Users, color: 'text-orange-600' },
-  { key: 'successRate', label: 'Success Rate', icon: CheckCircle, color: 'text-green-600', suffix: '%' },
-  { key: 'failedAttempts', label: 'Failed', icon: XCircle, color: 'text-red-600' },
+  { key: 'totalShares', label: 'Total Shared', icon: Share2, color: 'text-neon', suffix: '' },
+  { key: 'todayShares', label: "Today's Shares", icon: TrendingUp, color: 'text-green-400', suffix: '' },
+  { key: 'successRate', label: 'Success Rate', icon: Target, color: 'text-neon', suffix: '%' },
+  { key: 'weeklyShares', label: 'This Week', icon: Activity, color: 'text-blue-400', suffix: '' },
+  { key: 'monthlyShares', label: 'This Month', icon: Zap, color: 'text-purple-400', suffix: '' },
+  { key: 'failedAttempts', label: 'Failed', icon: XCircle, color: 'text-red-400', suffix: '' },
 ];
 
 export default function Dashboard() {
@@ -35,16 +40,30 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-neon/30 border-t-neon" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">Overview of your automation activity</p>
+    <div className="space-y-8 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="section-title">
+            <span className="gradient-text">Dashboard</span>
+          </h1>
+          <p className="section-subtitle mt-1">Your automation hub — real-time performance at a glance</p>
+        </div>
+        <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl glass border border-white/[0.06]">
+          <Sparkles className="h-4 w-4 text-neon" />
+          <span className="text-xs font-medium text-muted-foreground">
+            {stats?.activeGroups || 0} Active Groups
+          </span>
+          <span className="text-muted-foreground/30">|</span>
+          <span className="text-xs font-medium text-muted-foreground">
+            {stats?.activeSchedules || 0} Schedules
+          </span>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -52,48 +71,75 @@ export default function Dashboard() {
           const Icon = item.icon;
           const value = stats?.[item.key] ?? 0;
           return (
-            <Card key={item.key}>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">{item.label}</p>
-                    <p className="text-3xl font-bold">
-                      {value}
-                      {item.suffix}
-                    </p>
-                  </div>
-                  <Icon className={`h-8 w-8 ${item.color} opacity-60`} />
+            <div key={item.key} className="glass-card-hover p-6 group">
+              <div className="flex items-start justify-between">
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{item.label}</p>
+                  <p className="stat-value text-foreground group-hover:text-neon transition-colors duration-300">
+                    {value}{item.suffix}
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
+                <div className={`p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] ${item.color}`}>
+                  <Icon className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="mt-4 h-1 w-full rounded-full bg-white/[0.04] overflow-hidden">
+                <div className="h-full w-3/5 rounded-full bg-gradient-to-r from-neon/50 to-neon/30" />
+              </div>
+            </div>
           );
         })}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Active Groups</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-muted-foreground" />
-              <span className="text-2xl font-bold">{stats?.activeGroups ?? 0}</span>
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="glass-card-hover p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2.5 rounded-xl bg-neon/10">
+              <Users className="h-5 w-5 text-neon" />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <p className="text-sm font-medium">Active Groups</p>
+              <p className="text-xs text-muted-foreground">Groups currently being targeted</p>
+            </div>
+          </div>
+          <p className="stat-value">{stats?.activeGroups ?? 0}</p>
+          <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="glow-dot-green" />
+            {stats?.activeGroups > 0 ? 'All groups operational' : 'No active groups'}
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Active Schedules</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-muted-foreground" />
-              <span className="text-2xl font-bold">{stats?.activeSchedules ?? 0}</span>
+        <div className="glass-card-hover p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2.5 rounded-xl bg-gold/10">
+              <Clock className="h-5 w-5 text-gold" />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <p className="text-sm font-medium">Active Schedules</p>
+              <p className="text-xs text-muted-foreground">Automation schedules running</p>
+            </div>
+          </div>
+          <p className="stat-value">{stats?.activeSchedules ?? 0}</p>
+          <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="glow-dot-gold" />
+            {stats?.activeSchedules > 0 ? 'Schedules active' : 'No schedules configured'}
+          </div>
+        </div>
+      </div>
+
+      <div className="glass-card p-6 gradient-border">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-neon/10">
+              <Award className="h-5 w-5 text-neon" />
+            </div>
+            <div>
+              <p className="text-sm font-medium">System Status</p>
+              <p className="text-xs text-muted-foreground">All systems operational</p>
+            </div>
+          </div>
+          <Badge variant="success">Live</Badge>
+        </div>
       </div>
     </div>
   );
