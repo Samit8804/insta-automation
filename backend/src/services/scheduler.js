@@ -55,7 +55,6 @@ async function processSchedules() {
             mode: schedule.selection_mode || 'random',
           };
 
-          const fetch = (await import('node-fetch')).default || require('node-fetch');
           const controller = new AbortController();
           const timeout = setTimeout(() => controller.abort(), 120000);
           const response = await fetch(`${AUTOMATION_URL}/share`, {
