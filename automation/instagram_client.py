@@ -1,7 +1,7 @@
 import os
 import asyncio
 import logging
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, expect
 
 from config import (
     INSTAGRAM_USERNAME,
@@ -155,36 +155,32 @@ class InstagramClient:
 
         if not ok:
             result["error"] = "Share button not found"
+            await self._screenshot("share_btn_missing")
             return result
 
-        ok = await self.page.evaluate(f"""
-            (() => {{
-                const inputs = document.querySelectorAll('input');
-                for (const inp of inputs) {{
-                    if (inp.offsetParent !== null) {{
-                        inp.value = '{target_group}';
-                        inp.dispatchEvent(new Event('input', {{bubbles: true}}));
-                        return true;
-                    }}
-                }}
-                return false;
-            }})
-        """)
-        await self.page.wait_for_timeout(3000)
-
-        if not ok:
+        try:
+            search_input = self.page.locator('input:visible').first
+            await search_input.wait_for(timeout=5000)
+            await search_input.fill(target_group)
+        except Exception:
             result["error"] = "Search box not found"
+            await self._screenshot("search_box_missing")
             return result
 
         await self.page.wait_for_timeout(3000)
 
         try:
-            search_result = self.page.locator(f'[role="button"]:has-text("{target_group}"), [role="option"]:has-text("{target_group}"), div:has-text("{target_group}")[role="button"], a:has-text("{target_group}")').first
-            await search_result.wait_for(timeout=8000)
+            search_result = self.page.locator(f'[role="button"]:has-text("{target_group}")').first
+            await search_result.wait_for(timeout=10000)
             await search_result.click()
         except Exception:
-            result["error"] = "Search result not found"
-            return result
+            try:
+                await self.page.keyboard.press("Enter")
+                await self.page.wait_for_timeout(2000)
+            except Exception:
+                result["error"] = "Search result not found"
+                await self._screenshot("search_result_missing")
+                return result
 
         await self.page.wait_for_timeout(2000)
 
