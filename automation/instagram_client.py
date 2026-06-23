@@ -176,19 +176,16 @@ class InstagramClient:
             result["error"] = "Search box not found"
             return result
 
-        ok = await self.page.evaluate(f"""
-            (() => {{
-                const items = document.querySelectorAll('div[role="button"]');
-                for (const item of items) {{
-                    const txt = (item.textContent || '').toLowerCase();
-                    if (txt.includes('{target_group}'.toLowerCase())) {{
-                        item.dispatchEvent(new Event('click', {{bubbles: true}}));
-                        return true;
-                    }}
-                }}
-                return false;
-            }})
-        """)
+        await self.page.wait_for_timeout(3000)
+
+        try:
+            search_result = self.page.locator(f'[role="button"]:has-text("{target_group}"), [role="option"]:has-text("{target_group}"), div:has-text("{target_group}")[role="button"], a:has-text("{target_group}")').first
+            await search_result.wait_for(timeout=8000)
+            await search_result.click()
+        except Exception:
+            result["error"] = "Search result not found"
+            return result
+
         await self.page.wait_for_timeout(2000)
 
         ok = await self.page.evaluate("""
