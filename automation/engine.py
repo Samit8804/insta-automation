@@ -36,7 +36,7 @@ class AutoShareEngine:
         reel_url = await self.client.select_reel(mode=mode)
         result = await self.client.share_to_group(target)
 
-        logger.info(f"Share result: success={result.get('success')}, time={result.get('execution_time_ms')}ms")
+        logger.info(f"Share result: success={result.get('success')}, error={result.get('error')}, time={result.get('execution_time_ms')}ms")
 
         return result
 
