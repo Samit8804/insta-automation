@@ -8,6 +8,7 @@ const groupRoutes = require('./routes/groups');
 const scheduleRoutes = require('./routes/schedules');
 const logRoutes = require('./routes/logs');
 const analyticsRoutes = require('./routes/analytics');
+const aiReplyRoutes = require('./routes/aiReply');
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use('/api/groups', groupRoutes);
 app.use('/api/schedules', scheduleRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/ai', aiReplyRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

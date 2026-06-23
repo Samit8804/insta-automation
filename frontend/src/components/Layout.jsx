@@ -7,6 +7,7 @@ import {
   Clock,
   BarChart3,
   Activity,
+  Bot,
   Menu,
   X,
   LogOut,
@@ -22,6 +23,7 @@ const navItems = [
   { path: '/schedules', label: 'Schedules', icon: Clock },
   { path: '/analytics', label: 'Analytics', icon: BarChart3 },
   { path: '/activity', label: 'Activity Logs', icon: Activity },
+  { path: '/ai-reply', label: 'AI Reply', icon: Bot },
 ];
 
 export default function Layout() {

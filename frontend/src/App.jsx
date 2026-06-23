@@ -10,6 +10,7 @@ import Groups from './pages/Groups';
 import Schedules from './pages/Schedules';
 import Analytics from './pages/Analytics';
 import ActivityLogs from './pages/ActivityLogs';
+import AIReply from './pages/AIReply';
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
             <Route path="/schedules" element={<Schedules />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/activity" element={<ActivityLogs />} />
+            <Route path="/ai-reply" element={<AIReply />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

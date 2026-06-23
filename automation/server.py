@@ -6,6 +6,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from engine import AutoShareEngine
+from ai_reply import DEFAULT_MODEL
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("AutomationServer")
@@ -112,6 +113,64 @@ async def save_session():
 async def login_page():
     return {
         "message": "A Chrome browser window should be open on your screen. Log into Instagram there, then call POST /savesession to save the session."
+    }
+
+
+
+class AIRequest(BaseModel):
+    groupId: str
+    groupName: str = ""
+    targetGroup: str
+    message: str = ""
+    model: str = DEFAULT_MODEL
+    prompt: str = ""
+
+
+@app.get("/ai/models")
+async def ai_models():
+    from ai_reply import get_ollama_models
+    models = await get_ollama_models()
+    return {"models": models}
+
+
+@app.post("/ai/reply")
+async def ai_reply(req: AIRequest):
+    if not engine.client.authenticated:
+        return {"success": False, "error": "Not logged in", "reply": ""}
+
+    from ai_reply import generate_reply, reply_to_group
+    import time
+    start = time.time()
+
+    latest = req.message
+    try:
+        if engine.client.page:
+            elem = await engine.client.page.query_selector('[role="button"] div[dir="auto"]')
+            if elem:
+                texts = await engine.client.page.query_selector_all('[role="button"] div[dir="auto"]')
+                for t in reversed(texts):
+                    txt = await t.inner_text()
+                    if txt and len(txt) > 3:
+                        latest = txt
+                        break
+    except:
+        pass
+
+    if not latest:
+        return {"success": False, "error": "No messages found", "reply": ""}
+
+    ai_reply_text = await generate_reply(latest, req.prompt or None, req.model or None)
+
+    group = {"_id": req.groupId, "groupName": req.groupName, "targetGroup": req.targetGroup}
+    result = await reply_to_group(engine.client, req.targetGroup, ai_reply_text)
+
+    elapsed = int((time.time() - start) * 1000)
+    return {
+        "success": result.get("success", False),
+        "reply": ai_reply_text,
+        "original": latest,
+        "executionTime": elapsed,
+        "error": result.get("error"),
     }
 
 

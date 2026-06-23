@@ -12,4 +12,5 @@ instagram_state.json
 .agents/
 tunnel_url.txt
 start_tunnel.bat
+start_instaflow.bat
 skills-lock.json

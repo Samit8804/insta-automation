@@ -1,27 +1,24 @@
 InstaFlow - Restart Steps (after laptop shutdown)
 =================================================
 
-1. Open terminal in E:\automation
+1. Open terminal and switch to E drive:
+   E:
+   cd E:\automation\automation
 
 2. Start automation service:
-   cd automation
    python server.py
 
-3. Wait 8 seconds, then expose it via Tailscale Funnel:
+3. Wait 10 seconds, then log into Instagram in the Chrome window.
+   Once logged in, save session:
+   curl http://localhost:8000/savesession -X POST
+
+4. Expose via Tailscale Funnel:
    tailscale funnel --bg 8000
 
-4. Start backend:
-   cd ..\backend
+5. Start backend:
+   cd E:\automation\backend
    node src\index.js
 
-5. Start frontend (optional - Vercel handles this):
-   cd ..\frontend
-   npm run dev
-
-6. Verify everything:
+6. Verify:
    - Automation: http://localhost:8000/status
-   - Backend:    http://localhost:5000/api/auth/login
-   - Frontend:   https://insta-automation.vercel.app
-
-That's it. The Render backend will find your automation
-automatically via the Tailscale Funnel URL.
+   - Frontend:   https://insta-automation-sable.vercel.app
