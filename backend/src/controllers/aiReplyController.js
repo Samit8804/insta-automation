@@ -57,6 +57,6 @@ exports.triggerReply = async (req, res) => {
     const result = response.ok ? await response.json() : { success: false, error: 'Automation service error' };
     res.json(result);
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: `Automation unreachable: ${err.message}` });
   }
 };
