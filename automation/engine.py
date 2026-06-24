@@ -141,9 +141,17 @@ class AutoShareEngine:
                     await page.goto("https://www.instagram.com/direct/inbox/", wait_until="networkidle", timeout=30000)
                     await asyncio.sleep(4)
 
+                    not_now = page.locator('button:has-text("Not Now"), button:has-text("Not now")').first
+                    try:
+                        await not_now.wait_for(timeout=3000)
+                        await not_now.click()
+                        await asyncio.sleep(2)
+                    except Exception:
+                        pass
+
                     chat = page.locator(f'[role="button"]:has-text("{target}"), a:has-text("{target}")').first
                     await chat.wait_for(timeout=15000)
-                    await chat.click()
+                    await chat.dispatch_event("click")
                     await asyncio.sleep(3)
 
                     latest = await extract_latest_message(page)

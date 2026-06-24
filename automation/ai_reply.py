@@ -12,8 +12,8 @@ DEFAULT_PROMPT = "You are a friendly Instagram user. Reply to the latest group c
 
 async def get_ollama_models():
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f"{OLLAMA_URL}/api/tags", timeout=5) as resp:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
+            async with session.get(f"{OLLAMA_URL}/api/tags") as resp:
                 if resp.status == 200:
                     data = await resp.json()
                     return [m["name"] for m in data.get("models", [])]
@@ -31,8 +31,8 @@ async def generate_reply(message: str, system_prompt: str = None, model: str = N
         "options": {"temperature": 0.7, "max_tokens": 150}
     }
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.post(f"{OLLAMA_URL}/api/generate", json=payload, timeout=30) as resp:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60)) as session:
+            async with session.post(f"{OLLAMA_URL}/api/generate", json=payload) as resp:
                 if resp.status == 200:
                     data = await resp.json()
                     return data.get("response", "").strip()
@@ -60,9 +60,17 @@ async def reply_to_group(client, target_group: str, message: str) -> dict:
         await page.goto("https://www.instagram.com/direct/inbox/", wait_until="networkidle", timeout=30000)
         await asyncio.sleep(4)
 
+        not_now = page.locator('button:has-text("Not Now"), button:has-text("Not now")').first
+        try:
+            await not_now.wait_for(timeout=3000)
+            await not_now.click()
+            await asyncio.sleep(2)
+        except Exception:
+            pass
+
         chat = page.locator(f'[role="button"]:has-text("{target_group}"), a:has-text("{target_group}")').first
         await chat.wait_for(timeout=15000)
-        await chat.click()
+        await chat.dispatch_event("click")
         await asyncio.sleep(3)
 
         textarea = await page.query_selector("textarea")
