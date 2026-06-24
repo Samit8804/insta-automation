@@ -31,10 +31,11 @@ exports.updateSettings = async (req, res) => {
 
 exports.getModels = async (req, res) => {
   try {
-    const http = require('axios');
     const automationUrl = process.env.AUTOMATION_SERVICE_URL || 'http://localhost:8000';
-    const result = await http.get(`${automationUrl}/ai/models`, { timeout: 5000 });
-    res.json({ models: result.data.models });
+    const response = await fetch(`${automationUrl}/ai/models`, { signal: AbortSignal.timeout(5000) });
+    if (!response.ok) return res.json({ models: [] });
+    const data = await response.json();
+    res.json({ models: data.models });
   } catch {
     res.json({ models: [] });
   }
@@ -43,12 +44,18 @@ exports.getModels = async (req, res) => {
 exports.triggerReply = async (req, res) => {
   try {
     const { groupId, groupName, targetGroup, message, model, prompt } = req.body;
-    const http = require('axios');
     const automationUrl = process.env.AUTOMATION_SERVICE_URL || 'http://localhost:8000';
-    const result = await http.post(`${automationUrl}/ai/reply`, {
-      groupId, groupName, targetGroup, message: message || '', model, prompt,
-    }, { timeout: 120000 });
-    res.json(result.data);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 120000);
+    const response = await fetch(`${automationUrl}/ai/reply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ groupId, groupName, targetGroup, message: message || '', model, prompt }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    const result = response.ok ? await response.json() : { success: false, error: 'Automation service error' };
+    res.json(result);
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
