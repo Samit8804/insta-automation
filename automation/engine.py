@@ -94,6 +94,62 @@ class AutoShareEngine:
         except Exception as e:
             logger.error(f"Run error: {e}")
 
+    async def check_ai_replies(self):
+        try:
+            resp = requests.get(
+                f"{BACKEND_URL}/api/ai/settings",
+                headers={"Authorization": f"Bearer {API_TOKEN}"},
+                timeout=10,
+            )
+            if resp.status_code != 200:
+                return
+            settings = resp.json()
+            if not settings.get("enabled"):
+                return
+
+            model = settings.get("model", "llama3.2")
+            prompt = settings.get("prompt", "")
+            groups = settings.get("targetGroups", [])
+            if not groups:
+                return
+
+            from ai_reply import generate_reply, reply_to_group, extract_latest_message
+
+            for group in groups:
+                target = group.get("targetGroup") or group.get("groupName", "")
+                if not target:
+                    continue
+
+                try:
+                    page = self.client.page
+                    if not page:
+                        continue
+
+                    await page.goto(f"https://www.instagram.com/direct/t/{target}/", wait_until="networkidle", timeout=30000)
+                    await asyncio.sleep(3)
+
+                    latest = extract_latest_message(page)
+                    if not latest or len(latest) < 3:
+                        continue
+
+                    cache_key = f"ai_replied_{target}"
+                    last = getattr(self, cache_key, None)
+                    if latest == last:
+                        continue
+                    setattr(self, cache_key, latest)
+
+                    reply_text = await generate_reply(latest, prompt or None, model)
+                    if reply_text.startswith("[") and reply_text.endswith("]"):
+                        continue
+
+                    result = await reply_to_group(self.client, target, reply_text)
+                    if result.get("success"):
+                        logger.info(f"AI replied in '{target}': {reply_text[:50]}")
+                except Exception as e:
+                    logger.warning(f"AI reply check for '{target}' failed: {e}")
+        except Exception as e:
+            logger.error(f"AI reply check error: {e}")
+
     async def stop(self):
         self.running = False
         await self.client.close()

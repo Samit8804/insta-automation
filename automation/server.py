@@ -29,7 +29,17 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.warning(f"Browser init: {e}")
 
+    async def ai_reply_loop():
+        while True:
+            try:
+                await asyncio.sleep(30)
+                if engine.client.authenticated:
+                    await engine.check_ai_replies()
+            except Exception as e:
+                logger.warning(f"AI reply loop: {e}")
+
     asyncio.create_task(init_browser())
+    asyncio.create_task(ai_reply_loop())
     yield
     await engine.stop()
 

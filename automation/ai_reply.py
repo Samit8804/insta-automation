@@ -42,10 +42,10 @@ async def generate_reply(message: str, system_prompt: str = None, model: str = N
         return "[AI unavailable]"
 
 
-def extract_latest_message(page) -> str:
-    messages = page.query_selector_all('[role="button"] div[dir="auto"]')
+async def extract_latest_message(page) -> str:
+    messages = await page.query_selector_all('[role="button"] div[dir="auto"]')
     for msg in reversed(messages):
-        text = msg.inner_text()
+        text = await msg.inner_text()
         if text and len(text) > 3:
             return text
     return ""
