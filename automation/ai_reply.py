@@ -57,7 +57,12 @@ async def reply_to_group(client, target_group: str, message: str) -> dict:
         if not page:
             return {"success": False, "error": "No page"}
 
-        await page.goto(f"https://www.instagram.com/direct/t/{target_group}/", wait_until="networkidle", timeout=30000)
+        await page.goto("https://www.instagram.com/direct/inbox/", wait_until="networkidle", timeout=30000)
+        await asyncio.sleep(4)
+
+        chat = page.locator(f'[role="button"]:has-text("{target_group}"), a:has-text("{target_group}")').first
+        await chat.wait_for(timeout=15000)
+        await chat.click()
         await asyncio.sleep(3)
 
         textarea = await page.query_selector("textarea")

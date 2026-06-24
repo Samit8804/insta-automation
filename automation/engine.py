@@ -138,7 +138,12 @@ class AutoShareEngine:
                     if not page:
                         continue
 
-                    await page.goto(f"https://www.instagram.com/direct/t/{target}/", wait_until="networkidle", timeout=30000)
+                    await page.goto("https://www.instagram.com/direct/inbox/", wait_until="networkidle", timeout=30000)
+                    await asyncio.sleep(4)
+
+                    chat = page.locator(f'[role="button"]:has-text("{target}"), a:has-text("{target}")').first
+                    await chat.wait_for(timeout=15000)
+                    await chat.click()
                     await asyncio.sleep(3)
 
                     latest = await extract_latest_message(page)
