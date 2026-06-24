@@ -32,7 +32,10 @@ exports.updateSettings = async (req, res) => {
 exports.getModels = async (req, res) => {
   try {
     const automationUrl = process.env.AUTOMATION_SERVICE_URL || 'http://localhost:8000';
-    const response = await fetch(`${automationUrl}/ai/models`, { signal: AbortSignal.timeout(5000) });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    const response = await fetch(`${automationUrl}/ai/models`, { signal: controller.signal });
+    clearTimeout(timeout);
     if (!response.ok) return res.json({ models: [] });
     const data = await response.json();
     res.json({ models: data.models });
