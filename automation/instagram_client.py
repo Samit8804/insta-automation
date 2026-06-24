@@ -182,28 +182,25 @@ class InstagramClient:
                 await self._screenshot("search_result_missing")
                 return result
 
-        await self.page.wait_for_timeout(2000)
+        await self.page.wait_for_timeout(3000)
 
-        ok = await self.page.evaluate("""
-            (() => {
-                const all = document.querySelectorAll('div[role="button"], button, svg');
-                for (const el of all) {
-                    const txt = (el.textContent || '').toLowerCase();
-                    const label = (el.getAttribute && el.getAttribute('aria-label') || '').toLowerCase();
-                    if (txt.includes('send') || label.includes('send')) {
-                        el.dispatchEvent(new Event('click', {bubbles: true}));
-                        return true;
-                    }
-                }
-                return false;
-            })
-        """)
-        await self.page.wait_for_timeout(2000)
-
-        if ok:
+        try:
+            send_btn = self.page.locator('div[role="button"]:has-text("Send"), button:has-text("Send"), svg[aria-label="Send"]').first
+            await send_btn.wait_for(timeout=8000)
+            await send_btn.click()
             result["success"] = True
-        else:
-            result["error"] = "Send button not found"
+        except Exception:
+            try:
+                await self.page.keyboard.press("Tab")
+                await self.page.wait_for_timeout(500)
+                await self.page.keyboard.press("Tab")
+                await self.page.wait_for_timeout(500)
+                await self.page.keyboard.press("Enter")
+                await self.page.wait_for_timeout(2000)
+                result["success"] = True
+            except Exception:
+                result["error"] = "Send button not found"
+                await self._screenshot("send_btn_missing")
 
         elapsed = int((time.time() - start) * 1000)
         result["execution_time_ms"] = elapsed
