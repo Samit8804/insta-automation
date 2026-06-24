@@ -161,7 +161,7 @@ class AutoShareEngine:
                 except Exception as e:
                     logger.warning(f"AI reply check for '{target}' failed: {e}")
         except Exception as e:
-            logger.error(f"AI reply check error: {e}")
+            logger.error(f"AI reply check error: {type(e).__name__}: {e}")
 
     async def stop(self):
         self.running = False
