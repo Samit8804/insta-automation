@@ -1,8 +1,10 @@
 import asyncio
+import json
 import logging
 import time
 from datetime import datetime
 
+import aiohttp
 import requests
 from instagram_client import InstagramClient
 from config import BACKEND_URL, API_TOKEN
@@ -96,26 +98,37 @@ class AutoShareEngine:
 
     async def check_ai_replies(self):
         try:
-            resp = requests.get(
-                f"{BACKEND_URL}/api/ai/settings",
-                headers={"Authorization": f"Bearer {API_TOKEN}"},
-                timeout=10,
-            )
-            if resp.status_code != 200:
-                return
-            settings = resp.json()
+            async with aiohttp.ClientSession() as session:
+                headers = {"Authorization": f"Bearer {API_TOKEN}"} if API_TOKEN else {}
+                async with session.get(f"{BACKEND_URL}/api/ai/settings", headers=headers, timeout=10) as resp:
+                    if resp.status != 200:
+                        return
+                    settings = await resp.json()
+
             if not settings.get("enabled"):
                 return
 
             model = settings.get("model", "llama3.2")
             prompt = settings.get("prompt", "")
-            groups = settings.get("targetGroups", [])
-            if not groups:
+            group_ids = settings.get("targetGroups", [])
+            if not group_ids:
+                return
+
+            async with aiohttp.ClientSession() as session:
+                headers = {"Authorization": f"Bearer {API_TOKEN}"} if API_TOKEN else {}
+                async with session.get(f"{BACKEND_URL}/api/groups", headers=headers, timeout=10) as resp:
+                    if resp.status != 200:
+                        return
+                    data = await resp.json()
+                    all_groups = data.get("groups", [])
+
+            target_groups = [g for g in all_groups if g.get("_id") in group_ids]
+            if not target_groups:
                 return
 
             from ai_reply import generate_reply, reply_to_group, extract_latest_message
 
-            for group in groups:
+            for group in target_groups:
                 target = group.get("targetGroup") or group.get("groupName", "")
                 if not target:
                     continue
@@ -128,7 +141,7 @@ class AutoShareEngine:
                     await page.goto(f"https://www.instagram.com/direct/t/{target}/", wait_until="networkidle", timeout=30000)
                     await asyncio.sleep(3)
 
-                    latest = extract_latest_message(page)
+                    latest = await extract_latest_message(page)
                     if not latest or len(latest) < 3:
                         continue
 
