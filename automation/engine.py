@@ -142,6 +142,16 @@ class AutoShareEngine:
                     await page.goto("https://www.instagram.com/direct/inbox/", wait_until="networkidle", timeout=30000)
                     await asyncio.sleep(3)
 
+                    if "/direct/t/" in page.url:
+                        back = page.locator('button:has-text("Back"), a:has-text("Back"), svg[aria-label="Back"]').first
+                        try:
+                            await back.wait_for(timeout=5000)
+                            await back.click()
+                            await asyncio.sleep(3)
+                        except Exception:
+                            await page.goto("https://www.instagram.com/direct/inbox/", timeout=30000)
+                            await asyncio.sleep(3)
+
                     await _dismiss_popups(page)
 
                     chat = page.locator(f'[role="button"]:has-text("{target}"), a:has-text("{target}")').first

@@ -116,6 +116,16 @@ async def _find_composer(page, timeout: int = 15) -> any:
                 return elem
         except Exception:
             continue
+
+    try:
+        elem = page.get_by_role("textbox").first
+        await elem.wait_for(state="visible", timeout=3000)
+        if await elem.is_visible():
+            logger.info("Found composer via: get_by_role(textbox)")
+            return elem
+    except Exception:
+        pass
+
     logger.warning("No composer found, dumping debug info")
     count = await page.locator('[contenteditable="true"]').count()
     logger.warning(f"contenteditable elements on page: {count}")
@@ -162,6 +172,16 @@ async def reply_to_group(client, target_group: str, message: str) -> dict:
 
         await page.goto("https://www.instagram.com/direct/inbox/", wait_until="networkidle", timeout=30000)
         await asyncio.sleep(3)
+
+        if "/direct/t/" in page.url:
+            back = page.locator('button:has-text("Back"), a:has-text("Back"), svg[aria-label="Back"]').first
+            try:
+                await back.wait_for(timeout=5000)
+                await back.click()
+                await asyncio.sleep(3)
+            except Exception:
+                await page.goto("https://www.instagram.com/direct/inbox/", timeout=30000)
+                await asyncio.sleep(3)
 
         await _dismiss_popups(page)
 
