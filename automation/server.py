@@ -3,6 +3,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from engine import AutoShareEngine
@@ -55,6 +56,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="InstaFlow Automation Service", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class ShareRequest(BaseModel):

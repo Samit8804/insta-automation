@@ -5,6 +5,8 @@ import { Badge } from '../components/ui/badge';
 import { Bot, MessageCircle, Send, Sparkles, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+const AUTOMATION_URL = import.meta.env.VITE_AUTOMATION_URL || 'https://desktop-nmaudlh.tail81756e.ts.net';
+
 export default function AIReply() {
   const [settings, setSettings] = useState({ enabled: false, model: 'llama3.2', prompt: '', targetGroups: [] });
   const [groups, setGroups] = useState([]);
@@ -48,17 +50,23 @@ export default function AIReply() {
     setReplying(true);
     setResult(null);
     try {
-      const res = await api.post('/ai/trigger', {
-        groupId: target._id,
-        groupName: target.groupName,
-        targetGroup: target.targetGroup,
-        message: testMsg,
-        model: settings.model || 'llama3.2',
-        prompt: settings.prompt,
+      const res = await fetch(`${AUTOMATION_URL}/ai/reply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          groupId: target._id,
+          groupName: target.groupName,
+          targetGroup: target.targetGroup,
+          message: testMsg,
+          model: settings.model || 'llama3.2',
+          prompt: settings.prompt,
+        }),
       });
-      setResult(res.data);
-      if (res.data.success) toast.success('Reply sent!');
-    } catch { toast.error('AI reply failed'); }
+      const data = await res.json();
+      setResult(data);
+      if (data.success) toast.success('Reply sent!');
+      else toast.error(data.error || 'AI reply failed');
+    } catch { toast.error('Cannot reach automation server'); }
     finally { setReplying(false); }
   };
 
