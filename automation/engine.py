@@ -177,7 +177,7 @@ class AutoShareEngine:
                         continue
                     setattr(self, cache_key, latest)
 
-                    reply_text = await generate_reply(latest, prompt or None, model)
+                    reply_text = await generate_reply(latest, system_prompt=prompt or None, model=model)
                     if reply_text.startswith("[") and reply_text.endswith("]"):
                         logger.warning(f"Skipping reply '{reply_text}' for '{target}'")
                         continue

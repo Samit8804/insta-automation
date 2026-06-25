@@ -32,8 +32,9 @@ async def get_ollama_models():
     return []
 
 
-async def generate_reply(message: str, system_prompt: str = None, model: str = None, max_retries: int = 3) -> str:
-    prompt = (system_prompt or DEFAULT_PROMPT).format(message=message)
+async def generate_reply(message: str, chat_history: str = "", system_prompt: str = None, model: str = None, max_retries: int = 3) -> str:
+    prompt = system_prompt or DEFAULT_PROMPT
+    prompt = prompt.replace("{message}", message).replace("{chat_history}", chat_history)
     payload = {
         "model": model or DEFAULT_MODEL,
         "prompt": prompt,

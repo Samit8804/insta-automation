@@ -187,7 +187,7 @@ async def ai_reply(req: AIRequest):
     if not latest:
         return {"success": False, "error": "No messages found", "reply": ""}
 
-    ai_reply_text = await generate_reply(latest, req.prompt or None, req.model or None)
+    ai_reply_text = await generate_reply(latest, system_prompt=req.prompt or None, model=req.model or None)
 
     group = {"_id": req.groupId, "groupName": req.groupName, "targetGroup": req.targetGroup}
     result = await reply_to_group(engine.client, req.targetGroup, ai_reply_text)
