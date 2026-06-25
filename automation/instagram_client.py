@@ -184,8 +184,26 @@ class InstagramClient:
 
         await self.page.wait_for_timeout(2000)
 
-        await self.page.keyboard.press("Enter")
+        try:
+            send_btn = self.page.locator('div[role="dialog"] button:has-text("Send"), div[role="dialog"] button:has-text("Send")').first
+            if await send_btn.is_visible(timeout=2000):
+                await send_btn.click()
+                logger.info("Clicked Send button in share dialog")
+            else:
+                await self.page.keyboard.press("Enter")
+        except Exception:
+            await self.page.keyboard.press("Enter")
         await self.page.wait_for_timeout(3000)
+
+        for _ in range(3):
+            try:
+                for btn_text in ["Not Now", "Not now", "Cancel", "Close"]:
+                    btn = self.page.locator(f'button:has-text("{btn_text}")').first
+                    if await btn.is_visible(timeout=1000):
+                        await btn.click()
+                        await self.page.wait_for_timeout(500)
+            except Exception:
+                pass
 
         result["success"] = True
 

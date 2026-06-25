@@ -1,11 +1,10 @@
 import asyncio
-import json
 import logging
-import time
 from datetime import datetime
 
 import aiohttp
 import requests
+
 from instagram_client import InstagramClient
 from config import BACKEND_URL, API_TOKEN
 
@@ -138,21 +137,25 @@ class AutoShareEngine:
                     if not page:
                         continue
 
-                    await page.goto("https://www.instagram.com/direct/inbox/", wait_until="networkidle", timeout=30000)
-                    await asyncio.sleep(4)
+                    from ai_reply import _find_composer, _dismiss_popups
 
-                    not_now = page.locator('button:has-text("Not Now"), button:has-text("Not now")').first
-                    try:
-                        await not_now.wait_for(timeout=3000)
-                        await not_now.click()
-                        await asyncio.sleep(2)
-                    except Exception:
-                        pass
+                    await page.goto("https://www.instagram.com/direct/inbox/", wait_until="networkidle", timeout=30000)
+                    await asyncio.sleep(3)
+
+                    await _dismiss_popups(page)
 
                     chat = page.locator(f'[role="button"]:has-text("{target}"), a:has-text("{target}")').first
                     await chat.wait_for(timeout=15000)
                     await chat.dispatch_event("click")
-                    await asyncio.sleep(3)
+                    await asyncio.sleep(5)
+
+                    await _dismiss_popups(page)
+
+                    composer = await _find_composer(page)
+                    if composer:
+                        logger.info(f"Composer found for '{target}', ready for reply")
+                    else:
+                        logger.warning(f"No composer found for '{target}'")
 
                     latest = await extract_latest_message(page)
                     if not latest or len(latest) < 3:
@@ -166,6 +169,7 @@ class AutoShareEngine:
 
                     reply_text = await generate_reply(latest, prompt or None, model)
                     if reply_text.startswith("[") and reply_text.endswith("]"):
+                        logger.warning(f"Skipping reply '{reply_text}' for '{target}'")
                         continue
 
                     result = await reply_to_group(self.client, target, reply_text)

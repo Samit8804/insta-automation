@@ -20,6 +20,16 @@ async def lifespan(app: FastAPI):
 
     async def init_browser():
         try:
+            from ollama_health import check_ollama_health, wait_for_ollama, restart_ollama
+
+            if not await check_ollama_health():
+                logger.warning("Ollama not responding — restarting...")
+                restart_ollama()
+                if await wait_for_ollama(120):
+                    logger.info("Ollama is ready")
+                else:
+                    logger.error("Ollama failed to start — AI reply will be unavailable")
+
             await engine.initialize()
             if engine.client.authenticated:
                 logger.info("Session restored — already logged in")
