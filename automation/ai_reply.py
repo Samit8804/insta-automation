@@ -31,13 +31,16 @@ async def get_ollama_models():
         logger.error(f"Ollama not available: {e}")
     return []
 
-
 async def generate_reply(message: str, chat_history: str = "", system_prompt: str = None, model: str = None, max_retries: int = 3) -> str:
-    prompt = system_prompt or DEFAULT_PROMPT
-    prompt = prompt.replace("{message}", message).replace("{chat_history}", chat_history)
+    system = system_prompt or DEFAULT_PROMPT
+    system = system.replace("{message}", message).replace("{chat_history}", chat_history)
+
     payload = {
         "model": model or DEFAULT_MODEL,
-        "prompt": prompt,
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": message}
+        ],
         "stream": False,
         "keep_alive": "10m",
         "options": {"temperature": 0.7, "num_predict": 150},
@@ -56,10 +59,10 @@ async def generate_reply(message: str, chat_history: str = "", system_prompt: st
 
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120)) as session:
-                async with session.post(f"{OLLAMA_URL}/api/generate", json=payload) as resp:
+                async with session.post(f"{OLLAMA_URL}/api/chat", json=payload) as resp:
                     if resp.status == 200:
                         data = await resp.json()
-                        return data.get("response", "").strip()
+                        return data.get("message", {}).get("content", "").strip()
                     text = await resp.text()
                     logger.error(f"Ollama returned {resp.status}: {text}")
                     return f"[Ollama error: {resp.status}]"
